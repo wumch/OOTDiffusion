@@ -12,6 +12,10 @@ from skimage.measure import label
 from .model import handpose_model
 from . import util
 
+import os
+import deepytorch_inference
+
+
 class Hand(object):
     def __init__(self, model_path):
         self.model = handpose_model()
@@ -21,6 +25,12 @@ class Hand(object):
         model_dict = util.transfer(self.model, torch.load(model_path))
         self.model.load_state_dict(model_dict)
         self.model.eval()
+
+        enable_acc: bool = os.getenv('WUMCH_ENABLE_ALI') == '1'
+        if enable_acc or os.getenv('WUMCH_ENABLE_JIT') == '1':
+            self.model = torch.jit.script(self.model)
+        if enable_acc:
+            self.model = deepytorch_inference.compile(self.model)
 
     def __call__(self, oriImgRaw):
         scale_search = [0.5, 1.0, 1.5, 2.0]

@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import torch
 from torchvision import transforms
+import os
 
 # 阿里云 AI推理加速器 see: https://help.aliyun.com/zh/egs/developer-reference/installing-and-using-deepytorch-inference?spm=a2c6h.12873639.article-detail.20.672bf9a9WUHSek
 import deepytorch_inference
@@ -31,12 +32,19 @@ class Body(object):
         print(f'时间: f{self.__class__.__name__}:4 {time.perf_counter()}')
         model = model.eval()
         print(f'时间: f{self.__class__.__name__}:5 {time.perf_counter()}')
-        self.model = torch.jit.script(model)
+
+        enable_acc: bool = os.getenv('WUMCH_ENABLE_ALI') == '1'
+        if enable_acc or os.getenv('WUMCH_ENABLE_JIT') == '1':
+            self.model = torch.jit.script(model)
+        else:
+            self.model = model
         print(f'时间: f{self.__class__.__name__}:6 {time.perf_counter()}')
         if torch.cuda.is_available():
             self.model = self.model.cuda()
             print(f'时间: f{self.__class__.__name__}:7 {time.perf_counter()}')
-        self.model = deepytorch_inference.compile(self.model)
+
+        if enable_acc:
+            self.model = deepytorch_inference.compile(self.model)
         print(f'时间: f{self.__class__.__name__}:8 {time.perf_counter()}')
 
     def __call__(self, oriImg):

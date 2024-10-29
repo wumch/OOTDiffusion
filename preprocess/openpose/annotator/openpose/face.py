@@ -8,6 +8,8 @@ import cv2
 from . import util
 from torch.nn import Conv2d, Module, ReLU, MaxPool2d, init
 
+import os
+import deepytorch_inference
 
 class FaceNet(Module):
     """Model the cascading heatmaps. """
@@ -327,6 +329,11 @@ class Face(object):
             self.model = self.model.cuda()
             print('cuda')
         self.model.eval()
+        enable_acc: bool = os.getenv('WUMCH_ENABLE_ALI') == '1'
+        if enable_acc or os.getenv('WUMCH_ENABLE_JIT') == '1':
+            self.model = torch.jit.script(self.model)
+        if enable_acc:
+            self.model = deepytorch_inference.compile(self.model)
 
     def __call__(self, face_img):
         H, W, C = face_img.shape
