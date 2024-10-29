@@ -13,22 +13,34 @@ import matplotlib
 import torch
 from torchvision import transforms
 
+# 阿里云 AI推理加速器 see: https://help.aliyun.com/zh/egs/developer-reference/installing-and-using-deepytorch-inference?spm=a2c6h.12873639.article-detail.20.672bf9a9WUHSek
+import deepytorch_inference
+
 from . import util
 from .model import bodypose_model
 
 
 class Body(object):
     def __init__(self, model_path):
-        self.model = bodypose_model()
+        print(f'时间: f{self.__class__.__name__}:1 {time.perf_counter()}')
+        model = bodypose_model()
+        print(f'时间: f{self.__class__.__name__}:2 {time.perf_counter()}')
+        model_dict = util.transfer(model, torch.load(model_path))
+        print(f'时间: f{self.__class__.__name__}:3 {time.perf_counter()}')
+        model.load_state_dict(model_dict)
+        print(f'时间: f{self.__class__.__name__}:4 {time.perf_counter()}')
+        model = model.eval()
+        print(f'时间: f{self.__class__.__name__}:5 {time.perf_counter()}')
+        self.model = torch.jit.script(model)
+        print(f'时间: f{self.__class__.__name__}:6 {time.perf_counter()}')
         if torch.cuda.is_available():
             self.model = self.model.cuda()
-        #     print('cuda')
-        model_dict = util.transfer(self.model, torch.load(model_path))
-        self.model.load_state_dict(model_dict)
-        self.model.eval()
-
+            print(f'时间: f{self.__class__.__name__}:7 {time.perf_counter()}')
+        self.model = deepytorch_inference.compile(self.model)
+        print(f'时间: f{self.__class__.__name__}:8 {time.perf_counter()}')
 
     def __call__(self, oriImg):
+        print(f'时间: f{self.__class__.__name__}:__call__:1 {time.perf_counter()}')
         # scale_search = [0.5, 1.0, 1.5, 2.0]
         scale_search = [0.5]
         boxsize = 368
@@ -72,6 +84,7 @@ class Body(object):
 
             heatmap_avg += heatmap_avg + heatmap / len(multiplier)
             paf_avg += + paf / len(multiplier)
+        print(f'时间: f{self.__class__.__name__}:__call__:2 {time.perf_counter()}')
 
         all_peaks = []
         peak_counter = 0
@@ -99,6 +112,7 @@ class Body(object):
 
             all_peaks.append(peaks_with_score_and_id)
             peak_counter += len(peaks)
+        print(f'时间: f{self.__class__.__name__}:__call__:3 {time.perf_counter()}')
 
         # find connection in the specified sequence, center 29 is in the position 15
         limbSeq = [[2, 3], [2, 6], [3, 4], [4, 5], [6, 7], [7, 8], [2, 9], [9, 10], \
@@ -159,6 +173,7 @@ class Body(object):
             else:
                 special_k.append(k)
                 connection_all.append([])
+            print(f'时间: f{self.__class__.__name__}:__call__:4 {time.perf_counter()}')
 
         # last number in each row is the total parts number of that person
         # the second last number in each row is the score of the overall configuration
@@ -215,6 +230,7 @@ class Body(object):
 
         # subset: n*20 array, 0-17 is the index in candidate, 18 is the total score, 19 is the total parts
         # candidate: x, y, score, id
+        print(f'时间: f{self.__class__.__name__}:__call__:5 {time.perf_counter()}')
         return candidate, subset
 
 

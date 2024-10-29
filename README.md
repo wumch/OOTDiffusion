@@ -75,3 +75,22 @@ python run_ootd.py --model_path <model-image-path> --cloth_path <cloth-image-pat
 - [x] Inference code
 - [x] Model weights
 - [ ] Training code
+
+
+## 下载预训练模型:
+```
+sudo apt install aria2
+cd /data/code/models 
+ 
+# 下载 OOTDiffusion 模型:
+curl -sL https://sciproxy.com/https://huggingface.co/levihsu/OOTDiffusion | aria2c --continue=true -x 4 -s 4 -k 1M -i -
+
+# 下载 clip-vit-large-patch14 :
+curl -sL https://sciproxy.com/https://huggingface.co/openai/clip-vit-large-patch14 | aria2c --continue=true -x 4 -s 4 -k 1M -i -
+
+# 删除原有的 checkpoints:
+rm -fr /data/code/OOTDiffusion/checkpoints
+# 软链接到 checkpoints:
+ln -s /data/code/models/OOTDiffusion/checkpoints /data/code/OOTDiffusion/checkpoints
+ln -s /data/code/models/clip-vit-large-patch14/checkpoints /data/code/OOTDiffusion/checkpoints/clip-vit-large-patch14
+```
