@@ -79,7 +79,7 @@ python run_ootd.py --model_path <model-image-path> --cloth_path <cloth-image-pat
 
 ## 下载预训练模型:
 ```
-pip install deepytorch-inference -f https://aiacc-inference-public-v2.oss-cn-hangzhou.aliyuncs.com/aiacc-inference-torch/stable-diffusion/aiacctorch_stable-diffusion.html
+pip install torch==2.0.1 deepytorch-inference -f https://aiacc-inference-public-v2.oss-cn-hangzhou.aliyuncs.com/aiacc-inference-torch/stable-diffusion/aiacctorch_stable-diffusion.html
 
 sudo apt install aria2
 cd /data/code/models 
@@ -94,8 +94,24 @@ curl -sL https://sciproxy.com/https://huggingface.co/openai/clip-vit-large-patch
 rm -fr /data/code/OOTDiffusion/checkpoints
 # 软链接到 checkpoints:
 ln -s /data/code/models/OOTDiffusion/checkpoints /data/code/OOTDiffusion/checkpoints
-ln -s /data/code/models/clip-vit-large-patch14/checkpoints /data/code/OOTDiffusion/checkpoints/clip-vit-large-patch14
+ln -s /data/code/models/clip-vit-large-patch14 /data/code/OOTDiffusion/checkpoints/clip-vit-large-patch14
 
 cd /data/code/OOTDiffusion/run
-time python run_ootd.py --model_path examples/model/model_1.png --colth_path examples/garment/048769_1.png --scale 2.0 --sample 1
+time python run_ootd.py --model_path examples/model/model_1.png --cloth_path examples/garment/048769_1.jpg --scale 2.0 --sample 1
+```
+
+### bug fix:
+如遇报错 cannot import name 'cached_download' from 'huggingface_hub'，需手工从
+lib/python3.8/site-packages/diffusers/utils/dynamic_modules_utils.py
+删除 cached_download 的 import。
+
+查看 torchvision ~ torch 版本对应关系:
+https://pypi.org/project/torchvision/
+
+```
+cd /tmp
+wget https://repo.anaconda.com/archive/Anaconda3-2022.10-Linux-x86_64.sh
+bash Anaconda3-2022.10-Linux-x86_64.sh
+
+conda create -n ai python=3.10
 ```
