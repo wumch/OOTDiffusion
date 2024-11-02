@@ -79,6 +79,8 @@ python run_ootd.py --model_path <model-image-path> --cloth_path <cloth-image-pat
 
 ## 下载预训练模型:
 ```
+pip install deepytorch-inference -f https://aiacc-inference-public-v2.oss-cn-hangzhou.aliyuncs.com/aiacc-inference-torch/stable-diffusion/aiacctorch_stable-diffusion.html
+
 sudo apt install aria2
 cd /data/code/models 
  
@@ -93,4 +95,7 @@ rm -fr /data/code/OOTDiffusion/checkpoints
 # 软链接到 checkpoints:
 ln -s /data/code/models/OOTDiffusion/checkpoints /data/code/OOTDiffusion/checkpoints
 ln -s /data/code/models/clip-vit-large-patch14/checkpoints /data/code/OOTDiffusion/checkpoints/clip-vit-large-patch14
+
+cd /data/code/OOTDiffusion/run
+time python run_ootd.py --model_path examples/model/model_1.png --colth_path examples/garment/048769_1.png --scale 2.0 --sample 1
 ```

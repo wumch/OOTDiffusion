@@ -15,7 +15,7 @@ from torchvision import transforms
 import os
 
 # 阿里云 AI推理加速器 see: https://help.aliyun.com/zh/egs/developer-reference/installing-and-using-deepytorch-inference?spm=a2c6h.12873639.article-detail.20.672bf9a9WUHSek
-import deepytorch_inference
+#import deepytorch_inference
 
 from . import util
 from .model import bodypose_model
@@ -44,6 +44,7 @@ class Body(object):
             print(f'时间: f{self.__class__.__name__}:7 {time.perf_counter()}')
 
         if enable_acc:
+            import deepytorch_inference
             self.model = deepytorch_inference.compile(self.model)
         print(f'时间: f{self.__class__.__name__}:8 {time.perf_counter()}')
 

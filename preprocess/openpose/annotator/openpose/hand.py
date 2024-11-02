@@ -13,7 +13,6 @@ from .model import handpose_model
 from . import util
 
 import os
-import deepytorch_inference
 
 
 class Hand(object):
@@ -30,6 +29,7 @@ class Hand(object):
         if enable_acc or os.getenv('WUMCH_ENABLE_JIT') == '1':
             self.model = torch.jit.script(self.model)
         if enable_acc:
+            import deepytorch_inference
             self.model = deepytorch_inference.compile(self.model)
 
     def __call__(self, oriImgRaw):
