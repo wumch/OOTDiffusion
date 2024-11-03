@@ -2,6 +2,7 @@ from pathlib import Path
 import sys
 from PIL import Image
 from utils_ootd import get_mask_location
+import time
 
 PROJECT_ROOT = Path(__file__).absolute().parents[1].absolute()
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -25,6 +26,7 @@ parser.add_argument('--sample', type=int, default=4, required=False)
 parser.add_argument('--seed', type=int, default=-1, required=False)
 args = parser.parse_args()
 
+print(f'时间: run_ootd-1: {time.perf_counter()}')
 
 openpose_model = OpenPose(args.gpu_id)
 parsing_model = Parsing(args.gpu_id)
@@ -43,6 +45,7 @@ n_steps = args.step
 n_samples = args.sample
 seed = args.seed
 
+print(f'时间: run_ootd-2: {time.perf_counter()}')
 if model_type == "hd":
     model = OOTDiffusionHD(args.gpu_id)
 elif model_type == "dc":
@@ -55,18 +58,21 @@ if __name__ == '__main__':
 
     if model_type == 'hd' and category != 0:
         raise ValueError("model_type \'hd\' requires category == 0 (upperbody)!")
-
+    print(f'时间: run_ootd-3: {time.perf_counter()}')
     cloth_img = Image.open(cloth_path).resize((768, 1024))
     model_img = Image.open(model_path).resize((768, 1024))
     keypoints = openpose_model(model_img.resize((384, 512)))
     model_parse, _ = parsing_model(model_img.resize((384, 512)))
+    print(f'时间: run_ootd-4: {time.perf_counter()}')
 
     mask, mask_gray = get_mask_location(model_type, category_dict_utils[category], model_parse, keypoints)
     mask = mask.resize((768, 1024), Image.NEAREST)
     mask_gray = mask_gray.resize((768, 1024), Image.NEAREST)
+    print(f'时间: run_ootd-5: {time.perf_counter()}')
     
     masked_vton_img = Image.composite(mask_gray, model_img, mask)
     masked_vton_img.save('./images_output/mask.jpg')
+    print(f'时间: run_ootd-6: {time.perf_counter()}')
 
     images = model(
         model_type=model_type,
@@ -80,8 +86,10 @@ if __name__ == '__main__':
         image_scale=image_scale,
         seed=seed,
     )
+    print(f'时间: run_ootd-7: {time.perf_counter()}')
 
     image_idx = 0
     for image in images:
         image.save('./images_output/out_' + model_type + '_' + str(image_idx) + '.png')
         image_idx += 1
+    print(f'时间: run_ootd-8: {time.perf_counter()}')
